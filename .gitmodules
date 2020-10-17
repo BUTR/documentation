@@ -1,0 +1,4 @@
+[submodule "themes/hugo-theme-techdoc"]
+	path = themes/hugo-theme-techdoc
+	url = https://github.com/thingsym/hugo-theme-techdoc
+	branch = master
