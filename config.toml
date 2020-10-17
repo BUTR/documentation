@@ -1,4 +1,4 @@
-baseURL = "https://butr.github.io/blog/"
+baseURL = "https://butr.github.io/documentation/"
 languageCode = "en-us"
 defaultContentLanguage = "en-us"
 title = "BUTR Documentation"
