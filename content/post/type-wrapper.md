@@ -1,17 +1,12 @@
 ---
+author: Aragas
 title: "Type Wrapper"
 date: 2021-12-15T17:57:01+09:00
-categories:
-- bannerlord
-- programming
-- advanced
-- backwards-compatibility
-tags:
-- csharp
-- bannerlord
-- backwards-compatibility
-thumbnailImage: images/black.png
-thumbnailImagePosition: left
+linktitle: Creating a New Theme
+menu:
+  main:
+    parent: Advanced
+weight: 10
 ---
 
 # Introduction
