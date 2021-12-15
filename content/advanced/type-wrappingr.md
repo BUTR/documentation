@@ -1,12 +1,7 @@
 ---
+title: "Type Wrapping"
 author: Aragas
-title: "Type Wrapper"
-date: 2021-12-15T17:57:01+09:00
-linktitle: Type Wrapper
-menu:
-  main:
-    parent: Advanced
-weight: 10
+date: 2021-12-15T17:57:01+03:00
 ---
 
 # Introduction
