@@ -1,0 +1,12 @@
+[build]
+  publish = "public"
+  command = "hugo -b $URL"
+
+[build.environment]
+  HUGO_VERSION = "0.90.1"
+
+[context.deploy-preview]
+  command = "hugo --verbose --i18n-warnings -b $DEPLOY_PRIME_URL"
+
+[context.branch-deploy]
+  command = "hugo --verbose --i18n-warnings --buildDrafts -b $DEPLOY_PRIME_URL"
