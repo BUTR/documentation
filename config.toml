@@ -1,4 +1,5 @@
 baseURL = "https://butr.github.io/documentation/"
+
 languageCode = "en-us"
 DefaultContentLanguage = "en"
 title = "BUTR Documentation"
@@ -14,13 +15,14 @@ enableMissingTranslationPlaceholders = false
 [params]
 
     # Source Code repository section
-    description = "put your description"
-    # github_repository = "https://github.com/thingsym/hugo-theme-techdoc"
-    # version = "0.9.4"
+    # description = "put your description"
+    github_repository = "https://github.com/butr/documentation"
+    # version = "0.9.7"
 
     # Documentation repository section
     # documentation repository (set edit link to documentation repository)
     github_doc_repository = "https://github.com/butr/documentation"
+    github_doc_repository_path = ""
 
     # Analytic section
     # google_analytics_id = "" # Your Google Analytics tracking id
@@ -67,11 +69,11 @@ enableMissingTranslationPlaceholders = false
 
 # Global menu section
 # See https://gohugo.io/content-management/menus/
-[menu]
-    [[menu.main]]
-        name = "Home"
-        url = "/"
-        weight = 1
+# [menu]
+#     [[menu.main]]
+#         name = "Home"
+#         url = "/"
+#         weight = 1
 
 # Markup configure section
 # See https://gohugo.io/getting-started/configuration-markup/
