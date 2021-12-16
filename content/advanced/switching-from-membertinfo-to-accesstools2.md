@@ -1,17 +1,21 @@
 ---
 title: "Switching from MemberInfo to AccessTools2"
 author: Aragas
-date: 2021-12-15T17:57:01+03:00
+date: 2021-12-16T13:32:01+03:00
 ---
 
 # Introduction
 Using any of the `MemberInfo` types is slow. Especially when they are not cached.  
 A better way for accessing type members is to create delegates, with them the access speed is on pair with direct access.  
 Harmony created a helper class `AccessTools` for those cases and BUTR created an extended version of it.  
-In this article we'll show how you can speed up your code.
+In this article we'll show how you can speed up your code.  
 
 ## Caching
 Always cache the reflection if it's gonna be called multiple times.
+
+## Harmony
+We strongly recommend to check first the [Harmony Documentation](https://harmony.pardeike.net/articles/intro.html) as the code base is based on it.  
+You will also need [Harmony.Extensions](https://github.com/BUTR/Harmony.Extensions) for the `AccessTools2` class.  
 
 ## Accessing fields
 ```csharp
