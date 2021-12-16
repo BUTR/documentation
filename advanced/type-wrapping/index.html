@@ -1,0 +1,228 @@
+<!doctype html><html lang=en-us>
+<head><meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Type Wrapping - BUTR Documentation</title>
+<meta name=generator content="Hugo 0.90.1">
+<link href=https://butr.github.io/documentation//index.xml rel=alternate type=application/rss+xml>
+<link rel=canonical href=https://butr.github.io/documentation/advanced/type-wrapping/>
+<link rel=stylesheet href=https://butr.github.io/documentation/css/theme.min.css>
+<script src=https://use.fontawesome.com/releases/v5.0.6/js/all.js></script>
+<link rel=stylesheet href=https://butr.github.io/documentation/css/chroma.min.css>
+<script src=https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/jquery.easing@1.4.1/jquery.easing.min.js></script>
+<script src=https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js></script>
+<script src=https://butr.github.io/documentation/js/bundle.js></script><style>:root{}</style>
+<meta property="og:title" content="Type Wrapping">
+<meta property="og:description" content="Introduction Our BUTR mods have a famous history of backwards compatibility.
+We use several techniques to achieve this without causing huge performance drops by using Harmony&rsquo;s built in reflection tools and caching.
+One of the techniques we use is type wrapping.
+It&rsquo;s used for several cases:
+ When types are moved between assemblies. Generally, to fix this you need to recompile your mod with the new locations, but it won&rsquo;t be backwards compatible this way.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://butr.github.io/documentation/advanced/type-wrapping/"><meta property="og:image" content="https://butr.github.io/documentation/images/og-image.png"><meta property="article:section" content="advanced">
+<meta property="article:published_time" content="2021-12-15T17:57:01+03:00">
+<meta property="article:modified_time" content="2021-12-15T17:57:01+03:00"><meta property="og:site_name" content="BUTR Documentation">
+<meta name=twitter:card content="summary_large_image">
+<meta name=twitter:image content="https://butr.github.io/documentation/images/og-image.png">
+<meta name=twitter:title content="Type Wrapping">
+<meta name=twitter:description content="Introduction Our BUTR mods have a famous history of backwards compatibility.
+We use several techniques to achieve this without causing huge performance drops by using Harmony&rsquo;s built in reflection tools and caching.
+One of the techniques we use is type wrapping.
+It&rsquo;s used for several cases:
+ When types are moved between assemblies. Generally, to fix this you need to recompile your mod with the new locations, but it won&rsquo;t be backwards compatible this way.">
+<meta itemprop=name content="Type Wrapping">
+<meta itemprop=description content="Introduction Our BUTR mods have a famous history of backwards compatibility.
+We use several techniques to achieve this without causing huge performance drops by using Harmony&rsquo;s built in reflection tools and caching.
+One of the techniques we use is type wrapping.
+It&rsquo;s used for several cases:
+ When types are moved between assemblies. Generally, to fix this you need to recompile your mod with the new locations, but it won&rsquo;t be backwards compatible this way."><meta itemprop=datePublished content="2021-12-15T17:57:01+03:00">
+<meta itemprop=dateModified content="2021-12-15T17:57:01+03:00">
+<meta itemprop=wordCount content="793"><meta itemprop=image content="https://butr.github.io/documentation/images/og-image.png">
+<meta itemprop=keywords content></head>
+<body><div class=container><header>
+<h1>BUTR Documentation</h1><a href=https://github.com/butr/documentation class=github><i class="fab fa-github"></i></a>
+</header>
+<div class=content-container>
+<main><h1>Type Wrapping</h1>
+<h1 id=introduction>Introduction</h1>
+<p>Our BUTR mods have a famous history of backwards compatibility.<br>
+We use several techniques to achieve this without causing huge performance drops by using Harmony&rsquo;s built in reflection tools and caching.<br>
+One of the techniques we use is type wrapping.<br>
+It&rsquo;s used for several cases:</p>
+<ul>
+<li>When types are moved between assemblies. Generally, to fix this you need to recompile your mod with the new locations, but it won&rsquo;t be backwards compatible this way. Instead, we stop working with the type directly and wrap it as an object, exposing an abstraction to work with.</li>
+<li>Incompatible signature changes. The method signature was replaced without keeping the old signature. Depending on the game version, you&rsquo;ll need to call different methods.</li>
+</ul>
+<h2 id=type-move>Type Move</h2>
+<p>Read-life example of type move.<br>
+In our BUTRLoader, we target e1.5.0 as the minimal supported version. Since the type was moved in e1.5.x, we either need to have 2 compiled assemblies and load one depending on the game version (see Implementation Loading), or create a type wrapper, what we did.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#75715e>// The game at some point moved type ModuleInfo
+</span><span style=color:#75715e>// TaleWorlds.Library.ModuleInfo
+</span><span style=color:#75715e>// to
+</span><span style=color:#75715e>// TaleWorlds.ModuleManager.ModuleInfo
+</span><span style=color:#75715e>// The type can&#39;t be directly referenced and used because it&#39;s location
+</span><span style=color:#75715e>// is not consistent anymore/
+</span><span style=color:#75715e>// So we instead create a wrapper class that access the type indirectly
+</span><span style=color:#75715e></span>
+<span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>sealed</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ModuleInfoWrapper</span>
+{
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>delegate</span> <span style=color:#66d9ef>string</span> GetIdDelegate(<span style=color:#66d9ef>object</span> instance);
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>delegate</span> <span style=color:#66d9ef>string</span> GetAliasDelegate(<span style=color:#66d9ef>object</span> instance);
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>delegate</span> <span style=color:#66d9ef>bool</span> GetIsSelectedDelegate(<span style=color:#66d9ef>object</span> instance);
+
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> Type? OldModuleInfoType = AccessTools2.TypeByName(<span style=color:#e6db74>&#34;TaleWorlds.Library.ModuleInfo&#34;</span>);
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> Type? NewModuleInfoType = AccessTools2.TypeByName(<span style=color:#e6db74>&#34;TaleWorlds.ModuleManager.ModuleInfo&#34;</span>);
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> Type? ModuleInfoType = OldModuleInfoType ?? NewModuleInfoType;
+
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> GetIdDelegate? GetId = AccessTools2.GetPropertyGetterDelegate&lt;GetIdDelegate&gt;(ModuleInfoType, <span style=color:#e6db74>&#34;Id&#34;</span>);
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> GetAliasDelegate? GetAlias = AccessTools2.GetPropertyGetterDelegate&lt;GetAliasDelegate&gt;(ModuleInfoType, <span style=color:#e6db74>&#34;Alias&#34;</span>);
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> GetIsSelectedDelegate? GetIsSelected = AccessTools2.GetPropertyGetterDelegate&lt;GetIsSelectedDelegate&gt;(ModuleInfoType, <span style=color:#e6db74>&#34;IsSelected&#34;</span>);
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> ModuleInfoWrapper Create(<span style=color:#66d9ef>object?</span> @object) =&gt; <span style=color:#66d9ef>new</span>(@object);
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>string</span> Id =&gt; <span style=color:#ae81ff>_</span>id ??= Object <span style=color:#66d9ef>is</span> <span style=color:#66d9ef>null</span> ? <span style=color:#66d9ef>string</span>.Empty : GetId?.Invoke(Object) ?? <span style=color:#66d9ef>string</span>.Empty;
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>string?</span> <span style=color:#ae81ff>_</span>id;
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>string</span> Alias =&gt; <span style=color:#ae81ff>_</span><span style=color:#66d9ef>alias</span> ??= Object <span style=color:#66d9ef>is</span> <span style=color:#66d9ef>null</span> ? <span style=color:#66d9ef>string</span>.Empty : GetAlias?.Invoke(Object) ?? <span style=color:#66d9ef>string</span>.Empty;
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>string?</span> <span style=color:#ae81ff>_</span><span style=color:#66d9ef>alias</span>;
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>bool</span> IsSelected =&gt; Object <span style=color:#66d9ef>is</span> <span style=color:#66d9ef>null</span> ? <span style=color:#66d9ef>false</span> : GetIsSelected?.Invoke(Object) ?? <span style=color:#66d9ef>false</span>;
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>object?</span> Object { <span style=color:#66d9ef>get</span>; }
+
+    <span style=color:#66d9ef>private</span> ModuleInfoWrapper(<span style=color:#66d9ef>object?</span> @object)
+    {
+        Object = @object;
+    }
+}
+</code></pre></div><p>We use the info from an already existing type <code>LauncherModuleVM</code>. It has a property <code>ModuleInfo Info</code>. Since we can&rsquo;t access the property directly, we create another wrapper and access the field via the wrapper.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>sealed</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>LauncherModuleVMWrapper</span>
+{
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> Type? LauncherModuleVMType = AccessTools2.TypeByName(<span style=color:#e6db74>&#34;TaleWorlds.MountAndBlade.Launcher.LauncherModuleVM&#34;</span>);
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> AccessTools.FieldRef&lt;<span style=color:#66d9ef>object</span>, <span style=color:#66d9ef>object</span>&gt;? GetInfo = AccessTools2.FieldRefAccess&lt;<span style=color:#66d9ef>object</span>&gt;(LauncherModuleVMType!, <span style=color:#e6db74>&#34;Info&#34;</span>);
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> LauncherModuleVMWrapper Create(<span style=color:#66d9ef>object</span> @object) =&gt; <span style=color:#66d9ef>new</span>(@object);
+
+    <span style=color:#66d9ef>public</span> ModuleInfoWrapper Info =&gt; <span style=color:#ae81ff>_</span>info ??= ModuleInfoWrapper.Create(GetInfo?.Invoke(Object));
+    <span style=color:#66d9ef>private</span> ModuleInfoWrapper? <span style=color:#ae81ff>_</span>info;
+
+    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>object</span> Object { <span style=color:#66d9ef>get</span>; }
+
+    <span style=color:#66d9ef>private</span> LauncherModuleVMWrapper(<span style=color:#66d9ef>object</span> @object)
+    {
+        Object = @object;
+    }
+}
+</code></pre></div><p>And then access it like this</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp>LauncherModuleVM targetModule = obj.Module;
+LauncherModuleVMWrapper targetModuleWrapper = LauncherModuleVMWrapper.Create(targetModule);
+ModuleInfoWrapper targetModuleInfoWrapper = targetModuleWrapper.Info;
+<span style=color:#66d9ef>string</span> targetModuleInfoId = targetModuleInfoWrapper.Id
+</code></pre></div><h2 id=signature-change>Signature Change</h2>
+<p>Read-life example of signature change.</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#75715e>// The game at some point changed GauntletLayer&#39;s constructor from
+</span><span style=color:#75715e>// (int localOrder, string categoryId = &#34;GauntletLayer&#34;)
+</span><span style=color:#75715e>// to
+</span><span style=color:#75715e>// (int localOrder, string categoryId = &#34;GauntletLayer&#34;, bool shouldClear = false)
+</span><span style=color:#75715e>// It introduces an optional parameter. It might seem that such a change is backward compatible,
+</span><span style=color:#75715e>// but it&#39;s not ABI compatible at all.
+</span><span style=color:#75715e></span>
+<span style=color:#75715e>// Some ScreenBase derived class
+</span><span style=color:#75715e></span><span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>void</span> OnInitialize()
+{
+    <span style=color:#66d9ef>base</span>.OnInitialize();
+    <span style=color:#ae81ff>_d</span>ataSource = <span style=color:#66d9ef>new</span> EditValueVM(<span style=color:#ae81ff>_</span>settingProperty);
+    <span style=color:#ae81ff>_</span>gauntletLayer = = <span style=color:#66d9ef>new</span> GauntletLayer(<span style=color:#ae81ff>4000</span>, <span style=color:#e6db74>&#34;GauntletLayer&#34;</span>); <span style=color:#75715e>// Broken
+</span><span style=color:#75715e></span>    <span style=color:#ae81ff>_</span>gauntletMovie = LoadMovie <span style=color:#66d9ef>is</span> not <span style=color:#66d9ef>null</span> ? LoadMovie(<span style=color:#ae81ff>_</span>gauntletLayer, <span style=color:#e6db74>&#34;EditValueView_MCM&#34;</span>, <span style=color:#ae81ff>_d</span>ataSource) : <span style=color:#66d9ef>null</span>; <span style=color:#75715e>// ignore for now
+</span><span style=color:#75715e></span>    <span style=color:#ae81ff>_</span>gauntletLayer.Input.RegisterHotKeyCategory(HotKeyManager.GetCategory(<span style=color:#e6db74>&#34;ChatLogHotKeyCategory&#34;</span>));
+    <span style=color:#ae81ff>_</span>gauntletLayer.InputRestrictions.SetInputRestrictions(<span style=color:#66d9ef>true</span>, InputUsageMask.All);
+    <span style=color:#ae81ff>_</span>gauntletLayer.IsFocusLayer = <span style=color:#66d9ef>true</span>;
+    AddLayer(<span style=color:#ae81ff>_</span>gauntletLayer);
+    ScreenManager.TrySetFocus(<span style=color:#ae81ff>_</span>gauntletLayer);
+}
+</code></pre></div><p>To fix this, you create a type wrapper</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>internal</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>GauntletLayerWrapper</span>
+{
+    <span style=color:#75715e>// The first version of the signature
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>delegate</span> GauntletLayer V1Delegate(<span style=color:#66d9ef>int</span> localOrder, <span style=color:#66d9ef>string</span> categoryId = <span style=color:#e6db74>&#34;GauntletLayer&#34;</span>);
+    <span style=color:#75715e>// THe second version
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>delegate</span> GauntletLayer V2Delegate(<span style=color:#66d9ef>int</span> localOrder, <span style=color:#66d9ef>string</span> categoryId = <span style=color:#e6db74>&#34;GauntletLayer&#34;</span>, <span style=color:#66d9ef>bool</span> shouldClear = <span style=color:#66d9ef>false</span>);
+
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> V1Delegate? V1;
+    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>readonly</span> V2Delegate? V2;
+
+    <span style=color:#66d9ef>static</span> GauntletLayerWrapper()
+    {
+        <span style=color:#75715e>// Iterate over each constructor
+</span><span style=color:#75715e></span>        <span style=color:#75715e>// You could manually find each constructor instead
+</span><span style=color:#75715e></span>        <span style=color:#75715e>// But in our opinion one full manual iteration is more effectice
+</span><span style=color:#75715e></span>        <span style=color:#66d9ef>foreach</span> (<span style=color:#66d9ef>var</span> constructorInfo <span style=color:#66d9ef>in</span> HarmonyLib.AccessTools.GetDeclaredConstructors(<span style=color:#66d9ef>typeof</span>(GauntletLayer), <span style=color:#66d9ef>false</span>))
+        {
+            <span style=color:#66d9ef>var</span> @params = constructorInfo.GetParameters();
+            <span style=color:#66d9ef>switch</span> (@params.Length)
+            {
+                <span style=color:#66d9ef>case</span> <span style=color:#ae81ff>2</span>:
+                    V1 = AccessTools2.GetDelegate&lt;V1Delegate&gt;(constructorInfo);
+                    <span style=color:#66d9ef>break</span>;
+                <span style=color:#66d9ef>case</span> <span style=color:#ae81ff>3</span>:
+                    V2 = AccessTools2.GetDelegate&lt;V2Delegate&gt;(constructorInfo);
+                    <span style=color:#66d9ef>break</span>;
+            }
+        }
+    }
+
+    <span style=color:#75715e>// The new constructor wrapper
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>static</span> GauntletLayer? Create(<span style=color:#66d9ef>int</span> localOrder, <span style=color:#66d9ef>string</span> categoryId = <span style=color:#e6db74>&#34;GauntletLayer&#34;</span>, <span style=color:#66d9ef>bool</span> shouldClear = <span style=color:#66d9ef>false</span>)
+    {
+        <span style=color:#66d9ef>if</span> (V1 <span style=color:#66d9ef>is</span> not <span style=color:#66d9ef>null</span>)
+            <span style=color:#66d9ef>return</span> V1(localOrder, categoryId);
+        <span style=color:#66d9ef>if</span> (V2 <span style=color:#66d9ef>is</span> not <span style=color:#66d9ef>null</span>)
+            <span style=color:#66d9ef>return</span> V2(localOrder, categoryId, shouldClear);
+        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>null</span>;
+    }
+}
+</code></pre></div><p>You can use it like this</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-csharp data-lang=csharp><span style=color:#66d9ef>protected</span> <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>void</span> OnInitialize()
+{
+    <span style=color:#66d9ef>base</span>.OnInitialize();
+    <span style=color:#ae81ff>_d</span>ataSource = <span style=color:#66d9ef>new</span> EditValueVM(<span style=color:#ae81ff>_</span>settingProperty);
+    <span style=color:#75715e>// Since the signature might change a third time, check that the result is not null
+</span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span> (GauntletLayerUtils.Create(<span style=color:#ae81ff>4000</span>, <span style=color:#e6db74>&#34;GauntletLayer&#34;</span>) <span style=color:#66d9ef>is</span> { } gauntletLayer)
+    {
+        <span style=color:#ae81ff>_</span>gauntletLayer = gauntletLayer;
+        <span style=color:#ae81ff>_</span>gauntletMovie = LoadMovie <span style=color:#66d9ef>is</span> not <span style=color:#66d9ef>null</span> ? LoadMovie(<span style=color:#ae81ff>_</span>gauntletLayer, <span style=color:#e6db74>&#34;EditValueView_MCM&#34;</span>, <span style=color:#ae81ff>_d</span>ataSource) : <span style=color:#66d9ef>null</span>; <span style=color:#75715e>// ignore for now
+</span><span style=color:#75715e></span>        <span style=color:#ae81ff>_</span>gauntletLayer.Input.RegisterHotKeyCategory(HotKeyManager.GetCategory(<span style=color:#e6db74>&#34;ChatLogHotKeyCategory&#34;</span>));
+        <span style=color:#ae81ff>_</span>gauntletLayer.InputRestrictions.SetInputRestrictions(<span style=color:#66d9ef>true</span>, InputUsageMask.All);
+        <span style=color:#ae81ff>_</span>gauntletLayer.IsFocusLayer = <span style=color:#66d9ef>true</span>;
+        AddLayer(<span style=color:#ae81ff>_</span>gauntletLayer);
+        ScreenManager.TrySetFocus(<span style=color:#ae81ff>_</span>gauntletLayer);
+    }
+}
+</code></pre></div><div class=edit-meta>
+Last updated on 15 Dec 2021
+<br>
+Published on 15 Dec 2021
+<br><a href=https://github.com/butr/documentation/edit/master/advanced/type-wrapping.md class=edit-page><i class="fas fa-pen-square"></i>&nbsp;Edit on GitHub</a></div><nav class=pagination><a class="nav nav-prev" href=https://butr.github.io/documentation/advanced/ title=Advanced><i class="fas fa-arrow-left" aria-hidden=true></i>&nbsp;Prev - Advanced</a>
+</nav><footer><p class=powered>Powered by <a href=https://gohugo.io>Hugo</a>. Theme by <a href=https://themes.gohugo.io/hugo-theme-techdoc/>TechDoc</a>. Designed by <a href=https://github.com/thingsym/hugo-theme-techdoc>Thingsym</a>.</p>
+</footer>
+</main>
+<div class=sidebar>
+<nav class=open-menu>
+<ul>
+<li><a href=https://butr.github.io/documentation/>Home</a></li>
+<li class=parent><a href=https://butr.github.io/documentation/advanced/>Advanced</a>
+<ul class=sub-menu>
+<li class=active><a href=https://butr.github.io/documentation/advanced/type-wrapping/>Type Wrapping</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+<div class=sidebar-footer></div>
+</div>
+</div><a href=# id=backtothetop-fixed class=backtothetop data-backtothetop-duration=600 data-backtothetop-easing=easeOutQuart data-backtothetop-fixed-fadein=1000 data-backtothetop-fixed-fadeout=1000 data-backtothetop-fixed-bottom=10 data-backtothetop-fixed-right=20>
+<span class="fa-layers fa-fw">
+<i class="fas fa-circle"></i>
+<i class="fas fa-arrow-circle-up"></i>
+</span></a>
+</div>
+</body>
+</html>
