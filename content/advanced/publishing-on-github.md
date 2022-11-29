@@ -44,9 +44,6 @@ Also, it will require to set 2 secrets, `NEXUSMODS_APIKEY` and `NEXUSMODS_COOKIE
 You can get the ApiKey from [here](https://www.nexusmods.com/users/myaccount?tab=api). The Cookies will require you to log in to NexusMods via Firefox.
 F12 and go to Network tab. Find any XHR method to nexusmods.com and copy the Cookies header. This is our NEXUSMODS_COOKIES secret.
 ```yml
-###########################
-#        NEXUSMODS        #
-###########################
   publish-on-nexusmods:
     needs: ["build-module"]
     uses: BUTR/workflows/.github/workflows/release-nexusmods.yml@master
@@ -68,9 +65,6 @@ You need to either switch to Steam Desktop Authenticator or extract the Shared K
 If Steam Guard is not used, `STEAM_LOGIN` and `STEAM_PASSWORD` secrets will be enough.
 
 ```yml
-###########################
-#          STEAM          #
-###########################
   publish-on-steam:
     needs: ["build-module"]
     uses: BUTR/workflows/.github/workflows/release-steam.yml@master
@@ -88,9 +82,6 @@ If Steam Guard is not used, `STEAM_LOGIN` and `STEAM_PASSWORD` secrets will be e
 # NuGet/GRP
 You'll need an API Key for NuGet.
 ```yml
-###########################
-#        NUGET/GPR        #
-###########################
   publish-on-nuget:
     needs: ["build-module"]
     uses: BUTR/workflows/.github/workflows/release-nuget.yml@master
@@ -103,9 +94,6 @@ You'll need an API Key for NuGet.
 
 # GitHub Releases
 ```yml
-###########################
-#         GITHUB          #
-###########################
   publish-on-github:
     needs: ["build-module"]
     uses: BUTR/workflows/.github/workflows/release-github.yml@master
