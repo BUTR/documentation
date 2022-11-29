@@ -20,9 +20,9 @@ After the 7Zip download and launching, you will be amazed by how easy and simple
 That’s everything you have to do. Now, let’s proceed on how to use 7Zip and other vital product details and information.  
 ## Navigating through 7Zip’s UI
 Inside the window, you’ll see the main toolbar containing the most useful features and other menus that let you dig deeper and be accustomed to its UI. Some of the features are briefly discussed below:  
-
 * `Extract` – a button that allows you to accept or browse for the default destination path for your file easily.  
 * `View` – this menu contains the `Folder History` as well as the `Favorites` menu which allows you to save to as much as ten folders.  
+
 7Zip can integrate with the Windows Explorer menu which displays archive files as folders. At the same time, it provides a toolbar with a drag-and-drop feature. It is possible as well to switch between a single or even dual-pane view. 7Zip password protect can help you protect the program.  
 
 ## Extraction
