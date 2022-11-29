@@ -7,6 +7,7 @@ date: 2022-11-29T19:30:00+03:00
 # Introduction
 We created some easy to use reusable workflows that you can use to automatically publish your mods on NexusMods, Steam Workshop, NuGet/GPR and GitHub Releases.  
 The workflow is a multijob.  
+Here's a [full example](https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/9a6f063ec9f8924feb51294ff0056501efc863c5/.github/workflows/publish.yml).  
 First, you need to build your module on GitHub Actions and publish the binaries as an artifact.  
 
 Here's an abstract example that uses [Bannerlord.BuildResources](https://github.com/BUTR/Bannerlord.BuildResources)
