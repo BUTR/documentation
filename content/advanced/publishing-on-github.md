@@ -11,7 +11,7 @@ Here's a [full example](https://github.com/BUTR/Bannerlord.UIExtenderEx/blob/9a6
 First, you need to build your module on GitHub Actions and publish the binaries as an artifact.  
 
 Here's an abstract example that uses [Bannerlord.BuildResources](https://github.com/BUTR/Bannerlord.BuildResources)
-for automatically building the mod with the proper structure.
+for automatically building the mod with the proper structure.  
 ```yml
   build-module:
     name: Build Module
@@ -40,9 +40,9 @@ for automatically building the mod with the proper structure.
 
 # NexusMods
 NexusMods will require you to set the proper ModId (`nexusmods_mod_id`), this is the number at the end of your mod url.  
-Also, it will require to set 2 secrets, `NEXUSMODS_APIKEY` and `NEXUSMODS_COOKIES`.
-You can get the ApiKey from [here](https://www.nexusmods.com/users/myaccount?tab=api). The Cookies will require you to log in to NexusMods via Firefox.
-F12 and go to Network tab. Find any XHR method to nexusmods.com and copy the Cookies header. This is our NEXUSMODS_COOKIES secret.
+Also, it will require to set 2 secrets, `NEXUSMODS_APIKEY` and `NEXUSMODS_COOKIES`.  
+You can get the ApiKey from [here](https://www.nexusmods.com/users/myaccount?tab=api). The Cookies will require you to log in to NexusMods via Firefox.  
+F12 and go to Network tab. Find any XHR method to nexusmods.com and copy the Cookies header. This is our NEXUSMODS_COOKIES secret.  
 ```yml
   publish-on-nexusmods:
     needs: ["build-module"]
@@ -60,9 +60,9 @@ F12 and go to Network tab. Find any XHR method to nexusmods.com and copy the Coo
 ```
 
 # Steam
-If Steam Guard is used, you need the STEAM_AUTH_CODE secret. Follow this url as a [guide](https://github.com/SteamTimeIdler/stidler/wiki/Getting-your-%27shared_secret%27-code-for-use-with-Auto-Restarter-on-Mobile-Authentication#getting-shared-secret-from-ios-windows):
-You need to either switch to Steam Desktop Authenticator or extract the Shared Key secret from your phone's files.
-If Steam Guard is not used, `STEAM_LOGIN` and `STEAM_PASSWORD` secrets will be enough.
+If Steam Guard is used, you need the STEAM_AUTH_CODE secret. Follow this url as a [guide](https://github.com/SteamTimeIdler/stidler/wiki/Getting-your-%27shared_secret%27-code-for-use-with-Auto-Restarter-on-Mobile-Authentication#getting-shared-secret-from-ios-windows):  
+You need to either switch to Steam Desktop Authenticator or extract the Shared Key secret from your phone's files.  
+If Steam Guard is not used, `STEAM_LOGIN` and `STEAM_PASSWORD` secrets will be enough.  
 
 ```yml
   publish-on-steam:
